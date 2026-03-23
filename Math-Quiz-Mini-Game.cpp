@@ -28,19 +28,38 @@ struct stQuizz {
 };
 
 string getOpTypeSymbol(enOperationType opType) {
-
-
+    switch (opType)
+    {
+    case enOperationType::Add:
+        return "+";
+    case enOperationType::Sub:
+        return "-";
+    case enOperationType::Mul:
+        return "x";
+    case enOperationType::Div:
+        return "/";
+    default:
+        return "MixOp";
+    }
 }
 
 string getQuestionLevelText(enQuestionsLevel questionLevel) {
-
+    string arrQuestionLevelText[4] = { "Easy", "Medium", "Hard", "Mix"};
+    return arrQuestionLevelText[questionLevel - 1];
 }
 
 int randomNumb(int from, int to) {
-    return rand() % (To - From + 1) + From;
+    return rand() % (to - from + 1) + from;
 }
 
 void setScreenColor(bool right) {
+    if (right)
+        system("color 2F"); // Green for correct answers.
+    else
+    {
+        system("color 4F"); // Red for incorrect answers.
+        cout << "\a"; // Plays an alert sound.
+    }
 
 }
 
@@ -144,27 +163,72 @@ void generateQuizzQuestions(stQuizz& quizz) {
 }
 
 int readQuestionAnswer() {
-
+    int answer = 0;
+    cin >> answer;
+    return answer;
 }
 
 void printTheQuestion(stQuizz& quizz, short questionNumber) {
-
+    cout << "\n";
+    cout << "Question [" << questionNumber + 1 << "/" << quizz.numberOfQuestions << "] \n\n";
+    cout << quizz.questionList[questionNumber].number1 << endl;
+    cout << quizz.questionList[questionNumber].number2 << " ";
+    cout << getOpTypeSymbol(quizz.questionList[questionNumber].opeartionType);
+    cout << "\n_______" << endl;
 }
 
 void correctTheQuestionAnswer(stQuizz& quizz, short questionNumber) {
+    if (quizz.questionList[questionNumber].playerAnswer != quizz.questionList[questionNumber].correctAnswer) {
+        quizz.questionList[questionNumber].answerResult = false;
+        quizz.NumberOfWrongAnswers++;
+        
+        cout << "Wrong Answer :( \n";
+        cout << "The right answer is: ";
+        cout << quizz.questionList[questionNumber].correctAnswer;
+        cout << "\n";
+    }
+    else {
+        quizz.questionList[questionNumber].answerResult = true;
+        quizz.NumberOfCorrectAnswers++;
 
+        cout << "Right answer ! \n";
+    }
+
+    cout << endl;
+
+    setScreenColor(quizz.questionList[questionNumber].answerResult);
 }
 
 void askAndCorrectQuestionListAnswers(stQuizz& quizz) {
+    
+    for (short questionNumber = 0; questionNumber < quizz.numberOfQuestions; questionNumber++) {
+        printTheQuestion(quizz, questionNumber);
+        quizz.questionList[questionNumber].playerAnswer = readQuestionAnswer();
+        correctTheQuestionAnswer(quizz, questionNumber);
+    }
 
+    quizz.isPass = (quizz.NumberOfCorrectAnswers >= quizz.NumberOfWrongAnswers);
 }
 
 string getFinalResultsText(bool pass) {
-
+    if (pass)
+        return "PASS :) ";
+    else
+        return "FAIL :( ";
 }
 
-void printQuizzResult(stQuizz& quizz) {
+void printQuizzResult(stQuizz quizz) {
+    cout << "\n";
+    cout << "_______________________\n\n";
+    cout << "Final result is " << getFinalResultsText(quizz.isPass);
+    cout << "\n______________________\n\n";
 
+    cout << "Number of questions: " << quizz.numberOfQuestions << endl;
+    cout << "Questions level    : " << getQuestionLevelText(quizz.questionLevel) << endl;
+    cout << "Op Type            :" << getOpTypeSymbol(quizz.opType) << endl;
+    cout << "Number of right answers: " << quizz.NumberOfCorrectAnswers << endl;
+    cout << "Number of wrong answers: " << quizz.NumberOfWrongAnswers << endl;
+    cout << "__________________________\n";
 }
 
 void playMathGame() {
@@ -174,8 +238,8 @@ void playMathGame() {
     quizz.opType = readOpType();
     
     generateQuizzQuestions(quizz);
-
-
+    askAndCorrectQuestionListAnswers(quizz);
+    printQuizzResult(quizz);
 }
 
 void resetScreen() {
